@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>智汇办校园助手</title>
-    <!-- 请确保 all.min.css 和 font-awesome 图标库已正确加载 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="all.min.css">
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -17,7 +15,7 @@
             --user-bubble: #667eea;
             --text-main: #333;
             --text-sub: #666;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
         * {
@@ -27,10 +25,10 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html,
-        body {
-            height: 100%;
-            overflow: hidden;
+        /* 修复：确保 html body 占满全屏，防止移动端滚动穿透 */
+        html, body {
+            height: 100%; 
+            overflow: hidden; /* 禁止 body 滚动，只允许聊天区域滚动 */
         }
 
         body {
@@ -43,6 +41,7 @@
             padding: 20px;
         }
 
+        /* 修复：容器高度限制，关键在于 Flex 布局 */
         .container {
             width: 100%;
             max-width: 900px;
@@ -53,19 +52,20 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 85vh;
+            height: 85vh; /* 桌面端高度 */
             position: relative;
         }
 
+        /* 头部 */
         .header {
             background: var(--chat-bg);
             padding: 15px 25px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
             justify-content: space-between;
             z-index: 10;
-            flex-shrink: 0;
+            flex-shrink: 0; /* 防止头部被压缩 */
         }
 
         .header-info {
@@ -99,36 +99,39 @@
             margin-top: 2px;
         }
 
+        /* 聊天区域主容器 */
         .chat-container {
-            flex: 1;
+            flex: 1; /* 占据剩余空间 */
             display: flex;
             flex-direction: column;
             background: #fff;
             position: relative;
-            overflow: hidden;
-            min-height: 0;
+            overflow: hidden; /* 防止溢出 */
+            min-height: 0; /* 关键：Flex 嵌套滚动必须设置 */
         }
 
+        /* 消息滚动区域 */
         .messages {
-            flex: 1;
+            flex: 1; /* 占据剩余空间 */
             padding: 20px;
-            overflow-y: auto;
-            scroll-behavior: auto;
+            overflow-y: auto; /* 允许垂直滚动 */
+            scroll-behavior: auto; /* JS控制滚动，设为auto更流畅 */
             background: #f9f9f9;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
+        /* 美化滚动条 */
         .messages::-webkit-scrollbar {
             width: 6px;
         }
-
         .messages::-webkit-scrollbar-thumb {
             background: #ddd;
             border-radius: 3px;
         }
 
+        /* 消息气泡 */
         .message-wrapper {
             display: flex;
             flex-direction: column;
@@ -137,15 +140,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message {
@@ -160,14 +156,12 @@
         .bot-wrapper {
             align-self: flex-start;
         }
-
         .bot-wrapper .bot-icon {
             font-size: 12px;
             margin-bottom: 4px;
             color: #888;
             margin-left: 2px;
         }
-
         .bot-wrapper .message {
             background: var(--bot-bubble);
             color: var(--text-main);
@@ -179,7 +173,6 @@
             align-self: flex-end;
             align-items: flex-end;
         }
-
         .user-wrapper .message {
             background: var(--primary-gradient);
             color: white;
@@ -191,8 +184,8 @@
         .input-area {
             padding: 15px 20px;
             background: white;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            flex-shrink: 0;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            flex-shrink: 0; /* 防止输入框被压缩 */
         }
 
         .input-container {
@@ -218,7 +211,7 @@
             font-size: 16px;
             outline: none;
             color: #333;
-            min-width: 0;
+            min-width: 0; /* 修复 flex input 宽度问题 */
         }
 
         .input-container button {
@@ -259,7 +252,7 @@
             margin-left: 20px;
             margin-bottom: 20px;
         }
-
+        
         .dot {
             width: 6px;
             height: 6px;
@@ -267,51 +260,28 @@
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-
-        .dot:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .dot:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
         @keyframes bounce {
-
-            0%,
-            80%,
-            100% {
-                transform: scale(0);
-            }
-
-            40% {
-                transform: scale(1);
-            }
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
 
         /* 移动端全屏适配 */
         @media (max-width: 768px) {
-            body {
-                padding: 0;
-            }
-
+            body { padding: 0; }
             .container {
-                height: 100%;
+                height: 100%; /* 占满视口 */
                 max-width: 100%;
                 border-radius: 0;
             }
-
-            .header {
-                padding: 12px 15px;
-            }
-
-            .messages {
-                padding: 15px;
-            }
+            .header { padding: 12px 15px; }
+            .messages { padding: 15px; }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -325,7 +295,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="chat-container">
             <div class="messages" id="messages">
                 <div class="message-wrapper bot-wrapper">
@@ -355,22 +325,21 @@
         </div>
     </div>
 
-    <script>
+<script>
         class ChatApp {
             constructor() {
                 this.messagesContainer = document.getElementById('messages');
                 this.messageInput = document.getElementById('messageInput');
                 this.sendButton = document.getElementById('sendButton');
                 this.typingIndicator = document.getElementById('typingIndicator');
-
-                // *** 核心修复点：切换回 CDN HTTPS 地址，假设 SSL 证书已修复，但需要解决 CORS 缓存问题。 ***
-                this.apiUrl = 'https://baota.hjke.cn:3645/api.php'; 
                 
-                this.isTyping = false; // 防止重复提交
-
+                // 确保这是你的真实后端地址
+                this.apiUrl = 'https://baota.hjke.cn:3645/api.php';
+                this.isTyping = false; 
+                
                 this.initEventListeners();
             }
-
+            
             initEventListeners() {
                 this.sendButton.addEventListener('click', () => this.sendMessage());
                 this.messageInput.addEventListener('keypress', (e) => {
@@ -379,127 +348,145 @@
                     }
                 });
             }
-
+            
             async sendMessage() {
                 const message = this.messageInput.value.trim();
                 if (!message || this.isTyping) return;
-
+                
                 this.isTyping = true;
-
+                
                 // 1. 显示用户消息
                 this.addMessage(message, 'user');
                 this.messageInput.value = '';
                 this.messageInput.blur(); 
-
-                // 2. 显示加载动画并滚动到底部
-                this.setLoading(true);
-
+                
+                // 2. 创建一个空的机器人气泡，准备接收数据
+                const botMessageDiv = this.createBotMessageBubble();
+                this.setLoading(true); // 显示加载动画
+                
                 try {
-                    // 使用 fetch API 发起请求
                     const response = await fetch(this.apiUrl, {
                         method: 'POST',
-                        // 注意：后端使用了流式传输 (X-DashScope-SSE: enable)，但前端 fetch 是同步等待完整响应。
-                        headers: { 
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ prompt: message })
                     });
-
-                    // 检查响应状态
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('API Response Error:', errorText);
-                        
-                        let errorMessage = `请求失败，HTTP 状态码: ${response.status}。`;
-                        if (response.status === 524) {
-                            errorMessage += '这可能是 CDN 超时错误，请检查源站 PHP 脚本是否执行时间过长。';
-                        }
-                        
-                        throw new Error(errorMessage);
-                    }
-
-                    // 隐藏加载动画
-                    this.setLoading(false);
-
-                    // 尝试解析 JSON 数据 
-                    const data = await response.json(); 
-
-                    let replyText = '抱歉，未能获取回复或回复格式不正确。';
-
-                    // 尝试从百炼 API 的标准 JSON 结构中提取文本
-                    if (data.output && data.output.text) {
-                        replyText = data.output.text;
-                    } else if (data.error) {
-                         replyText = `错误: ${data.error} (请检查 PHP 文件中的 API Key 和 App ID)。`;
-                    }
                     
-                    // 4. 显示回复内容 
-                    this.addMessage(replyText, 'bot');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    // 隐藏加载动画（因为马上要有文字流出来了）
+                    this.typingIndicator.style.display = 'none';
+
+                    // --- 核心：使用 TextDecoderStream 进行流式读取 ---
+                    const stream = response.body.pipeThrough(new TextDecoderStream());
+                    let buffer = ''; // 缓冲区，处理跨包数据
+                    let botText = ''; // 存储完整的回复内容
+
+                    for await (const chunk of stream) {
+                        // 将新收到的分片拼接到缓冲区
+                        buffer += chunk;
+                        
+                        // 按换行符分割（SSE 标准以换行符分隔）
+                        const lines = buffer.split('\n');
+                        
+                        // 关键步骤：保留最后一个可能不完整的片段到下一次循环
+                        buffer = lines.pop();
+                        
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            
+                            // 解析 SSE 格式：data: {...}
+                            if (trimmedLine.startsWith('data:')) {
+                                const jsonStr = trimmedLine.substring(5).trim();
+                                if (!jsonStr) continue;
+                                
+                                try {
+                                    const data = JSON.parse(jsonStr);
+                                    
+                                    // 检查是否有错误信息
+                                    if (data.error) {
+                                        botMessageDiv.innerHTML += `<br><span style="color:red">错误: ${data.error}</span>`;
+                                        continue;
+                                    }
+
+                                    // 阿里云百炼通常返回 output.text
+                                    if (data.output && data.output.text) {
+                                        botText = data.output.text;
+                                        // 实时渲染 HTML（处理换行）
+                                        botMessageDiv.innerHTML = botText.replace(/\n/g, '<br>');
+                                        this.scrollToBottom();
+                                    }
+                                } catch (e) {
+                                    console.warn('JSON解析忽略:', e);
+                                }
+                            }
+                        }
+                    }
 
                 } catch (error) {
-                    this.setLoading(false);
-                    console.error('Fetch Error:', error);
-                    
-                    let displayMessage = '网络连接或服务器配置异常。';
-
-                    // 如果是 TypeError (通常是 Failed to fetch 或 CORS 阻断)
-                    if (error.name === 'TypeError') {
-                        displayMessage = '致命错误：浏览器安全策略阻止了请求。请确保 CDN 上的 **CORS 缓存已彻底清除**，并检查 SSL 证书是否有效。';
-                    } else {
-                        displayMessage = `请求错误: ${error.message}`;
-                    }
-
-                    this.addMessage(displayMessage, 'bot');
+                    console.error('Error:', error);
+                    botMessageDiv.innerHTML += `<br><span style="color:red">连接异常，请重试。</span>`;
                 } finally {
                     this.isTyping = false;
-                    if (window.innerWidth > 768) this.messageInput.focus();
+                    this.setLoading(false); // 确保按钮状态恢复
+                    // 桌面端自动聚焦输入框
+                    if(window.innerWidth > 768) this.messageInput.focus();
                 }
             }
 
-            // 普通添加消息（用户消息或错误提示）
+            // 创建机器人消息容器（气泡）
+            createBotMessageBubble() {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-wrapper bot-wrapper';
+                wrapper.innerHTML = `
+                    <div class="bot-icon">助手</div>
+                    <div class="message"></div>
+                `;
+                this.messagesContainer.appendChild(wrapper);
+                this.scrollToBottom();
+                return wrapper.querySelector('.message');
+            }
+
+            // 添加普通消息（用户消息）
             addMessage(text, sender) {
                 const wrapper = document.createElement('div');
                 wrapper.className = `message-wrapper ${sender}-wrapper`;
-
+                
                 let htmlContent = '';
                 if (sender === 'bot') {
                     htmlContent += `<div class="bot-icon">助手</div>`;
                 }
-
-                // 简单处理换行
+                
                 const formattedText = text.replace(/\n/g, '<br>');
                 htmlContent += `<div class="message">${formattedText}</div>`;
-
+                
                 wrapper.innerHTML = htmlContent;
                 this.messagesContainer.appendChild(wrapper);
                 this.scrollToBottom();
-                return wrapper; // 返回元素引用
             }
-
-            // 注意：由于上面 sendMessage 中的 fetch 是同步等待，打字机效果目前不会生效
-            async typeWriterEffect(text) {
-                this.addMessage(text, 'bot');
-                return Promise.resolve();
-            }
-
-
+            
             setLoading(loading) {
                 this.sendButton.disabled = loading;
-                this.typingIndicator.style.display = loading ? 'flex' : 'none';
+                // 注意：在流式传输中，typingIndicator 只在连接建立前显示
+                // 连接建立后我们会手动隐藏它
+                if (loading) {
+                    this.typingIndicator.style.display = 'flex';
+                } else {
+                    this.typingIndicator.style.display = 'none';
+                }
                 this.scrollToBottom();
             }
-
+            
             scrollToBottom() {
+                // 使用 requestAnimationFrame 确保在渲染后滚动
                 requestAnimationFrame(() => {
                     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
                 });
             }
         }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             new ChatApp();
         });
     </script>
 </body>
-
 </html>
