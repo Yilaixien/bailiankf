@@ -3,83 +3,138 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智汇办 - 居中对话框</title>
+    <title>智汇办校园助手</title>
+    <!-- 引入 FontAwesome 图标库 (用于你的 Header 图标) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* 全局样式 */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            /*以此背景色模拟网页背景，突出居中的聊天框 */
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: sans-serif;
-        }
-
         /* =========================================
-           核心容器样式：实现居中与响应式
+           1. 你的原始 CSS (保持不变)
            ========================================= */
-        #chat-container {
-            /* 1. 固定定位，确保不随页面滚动 */
-            position: fixed;
-            z-index: 1000;
-            background: #fff; /* 容器背景色 */
-            overflow: hidden; /* 防止内容溢出圆角 */
-            
-            /* 2. PC 端居中核心代码 (绝对定位 + 变换) */
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            
-            /* 3. PC 端默认尺寸与美化 */
-            width: 500px;
-            height: 650px;
-            border-radius: 16px; /* 圆角卡片感 */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); /* 悬浮阴影 */
-            transition: all 0.3s ease; /* 尺寸变化时的过渡动画 */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-main: #333;
+            --text-sub: #666;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            height: 100%; 
+            overflow: hidden; 
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 核心容器：PC端卡片样式 */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 85vh; /* PC端高度 */
+            position: relative;
+        }
+
+        /* 头部样式 */
+        .header {
+            background: #ffffff;
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .header-info { display: flex; align-items: center; gap: 15px; }
+
+        .avatar-circle {
+            width: 40px; height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 18px;
+            box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+        }
+
+        .header-text h1 { font-size: 1.1rem; color: var(--text-main); font-weight: 700; }
+        .header-text p { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
+
+        /* =========================================
+           2. 新增 Coze 挂载点样式
+           ========================================= */
+        
+        /* 这个 div 将填满 Header 下方的所有空间 */
+        #coze-mount-point {
+            flex: 1; /* 占据剩余高度 */
+            width: 100%;
+            overflow: hidden; /* 防止 Coze 的 iframe 撑开 */
+            background: transparent;
         }
 
         /* =========================================
-           移动端适配：强制全屏
+           3. 移动端全屏适配 (保持你的逻辑)
            ========================================= */
         @media (max-width: 768px) {
-            #chat-container {
-                /* 覆盖 PC 端的定位样式 */
-                top: 0 !important;
-                left: 0 !important;
-                transform: none !important; /* 取消居中位移 */
-                
-                /* 强制铺满屏幕 */
-                width: 100% !important;
-                height: 100% !important;
-                
-                /* 移除卡片样式，变成原生 App 风格 */
-                border-radius: 0 !important;
-                box-shadow: none !important;
+            body { padding: 0; }
+            .container {
+                height: 100%; /* 占满视口 */
+                max-width: 100%;
+                border-radius: 0;
             }
+            .header { padding: 12px 15px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. 创建自定义挂载容器 -->
-    <div id="chat-container"></div>
+    <div class="container">
+        <!-- 保留你漂亮的 Header -->
+        <div class="header">
+            <div class="header-info">
+                <div class="avatar-circle">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="header-text">
+                    <h1>智汇办校园助手</h1>
+                    <p><i class="fa-solid fa-circle" style="font-size:8px; color:#2ecc71; margin-right:4px;"></i>在线</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 
+            这里删除了原本的静态 HTML 聊天气泡和输入框 
+            改为放置一个 Coze SDK 的挂载容器 
+        -->
+        <div id="coze-mount-point"></div>
+    </div>
 
     <!-- 加载 SDK -->
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 
     <script>
         window.addEventListener('load', function() {
-            
-            // 获取我们创建的容器元素
-            const containerElement = document.getElementById('chat-container');
-
             const cozeWebSDK = new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'app',
                     bot_id: '', 
-                    isIframe: false, // 设为 false 以便更好地嵌入容器
+                    isIframe: false, // 必须为 false 才能嵌入 div
                     appInfo: {
                         appId: '7578837631745097754',
                         workflowId: '7578919509240463398'    
@@ -87,7 +142,6 @@
                 },
                 auth: {
                     type: 'token',
-                    // 生产环境建议动态获取 Token
                     token: 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J',
                     onRefreshToken: async () => 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J'
                 },
@@ -98,37 +152,31 @@
                 },
                 ui: {
                     base: {
-                        // 【关键配置】
-                        // 因为我们要挂载到自定义容器中，建议强制指定布局，
-                        // 防止 SDK 内部的自动切换逻辑与外部 CSS 冲突。
-                        layout: 'pc', 
-                        zIndex: 1000
+                        // 【关键】强制使用 mobile 布局
+                        // 因为我们已经有了外层的 Container 限制大小，
+                        // 用 mobile 布局可以让 Coze 的内容填满容器，不留多余边距
+                        layout: 'mobile', 
+                        zIndex: 1
                     },
+                    // 【关键】隐藏 Coze 自带的 Header
+                    // 因为我们用了你 HTML 里更好看的自定义 Header
                     header: {
-                        isShow: true,
-                        isNeedClose: false, // 容器模式下通常不需要关闭按钮
+                        isShow: false 
                     },
-                    asstBtn: {
-                        isNeed: false // 【关键】隐藏默认的右下角悬浮球
-                    },
+                    asstBtn: { isNeed: false }, // 隐藏悬浮球
                     footer: {
-                        isShow: true,
-                        expressionText: 'Powered by 智汇办',
+                        isShow: false // 隐藏底部 Powered by，节省空间
                     },
                     chatBot: {
-                        title: '智汇办',
-                        // 【核心配置】指定挂载容器
-                        // 所有的聊天界面都会被渲染进这个 div 里
-                        el: containerElement, 
-                        
-                        // 注意：设置了 el 后，这里的 width 属性通常会失效，
-                        // 尺寸完全由 #chat-container 的 CSS 控制
+                        // 【核心】挂载到我们预留的 div 上
+                        el: document.getElementById('coze-mount-point'),
+                        width: '100%', // 宽度跟随父容器
                         uploadable: true,
                     },
                 },
             });
 
-            // 立即显示（虽然挂载模式下通常会自动显示，但调用一下更保险）
+            // 立即显示
             cozeWebSDK.showChatBot();
         });
     </script>
