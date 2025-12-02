@@ -2,37 +2,65 @@
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智汇办 - Coze Chat</title>
+    <!-- 关键：设置 viewport 以适配移动端屏幕比例 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智汇办 - 智能助手</title>
     
     <style>
-        /* 这里整合了 main.css 的内容 */
+        /* 1. 基础样式 */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            /* 建议加上 overflow: hidden 防止出现不必要的滚动条，因为聊天窗口是悬浮层 */
-            overflow: hidden; 
-            background-color: #f5f7fa; /* 稍微加个背景色，这样聊天窗口弹出来更明显 */
+            overflow: hidden; /* 防止背景滚动 */
+            background-color: #f5f7fa;
+        }
+
+        /* =========================================
+           2. 动态调整聊天框尺寸（响应式 CSS）
+           参考帮助文档建议实现
+           ========================================= */
+
+        /* 平板/窄屏 PC (宽度小于 768px) */
+        @media (max-width: 768px) {
+            /* 尝试定位 Coze 的容器类名，通常是 class 包含 coze-webchat */
+            div[class*="coze-webchat"], 
+            .coze-webchat-container {
+                width: 90% !important;   /* 宽度变窄适配 */
+                right: 5% !important;    /* 居中一点 */
+                bottom: 20px !important;
+            }
+        }
+
+        /* 手机移动端 (宽度小于 480px) */
+        @media (max-width: 480px) {
+            div[class*="coze-webchat"], 
+            .coze-webchat-container {
+                width: 100vw !important;  /* 强制占满全屏宽度 */
+                height: 100vh !important; /* 强制占满全屏高度 */
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                border-radius: 0 !important; /* 取消圆角，变成原生App体验 */
+                box-shadow: none !important;
+            }
         }
     </style>
 </head>
 <body>
     
-    <!-- 1. 加载 Coze Chat SDK -->
-    <!-- 注意：这个 SDK 版本 (chat-app-sdk) 主要用于生成悬浮/弹窗式的聊天应用 -->
+    <!-- 加载 SDK -->
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 
-    <!-- 2. 初始化逻辑 -->
     <script>
-        // 等待页面加载完成后执行，确保 SDK 已经就绪
         window.addEventListener('load', function() {
             
-            // 初始化 Chat SDK 并保存实例到变量
+            // 初始化 Chat SDK
             const cozeWebSDK = new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'app',
-                    bot_id: '', // 在 type='app' 模式下，主要依赖 appInfo
+                    bot_id: '', 
                     isIframe: false,
                     appInfo: {
                         appId: '7578837631745097754',
@@ -41,32 +69,36 @@
                 },
                 auth: {
                     type: 'token',
-                    // 注意：在生产环境中，Token 建议通过后端接口动态获取，不要直接写死在前端
+                    // ⚠️ 注意：生产环境建议 Token 不要写死在前端，最好由后端生成
                     token: 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J',
                     onRefreshToken: async () => 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J'
                 },
                 userInfo: {
                     id: 'user',
                     url: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png',
-                    nickname: 'User',
+                    nickname: '访客',
                 },
                 ui: {
                     base: {
                         icon: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/chatsdk-logo.png',
-                        layout: 'pc', // PC 布局模式
+                        
+                        // 【关键修改 1】让 SDK 自动识别设备类型
+                        // 电脑上显示悬浮窗，手机上显示全屏模式
+                        layout: 'auto', 
+                        
                         lang: 'zh-CN',
                         zIndex: 1000
                     },
                     header: {
                         isShow: true,
-                        isNeedClose: false, // 禁止关闭，保证窗口一直存在
+                        isNeedClose: false, // 禁止关闭，保证一直显示
                     },
                     asstBtn: {
-                        isNeed: false // 隐藏右下角的悬浮球，因为我们要强制弹出
+                        isNeed: false // 隐藏右下角悬浮球，因为我们要直接弹出来
                     },
                     footer: {
                         isShow: true,
-                        expressionText: 'Powered by Doubao-1.5-pro-32k',
+                        expressionText: 'Powered by Doubao',
                     },
                     conversations: {
                         isNeed: true,
@@ -74,27 +106,32 @@
                     chatBot: {
                         title: '智汇办',
                         uploadable: true,
-                        width: 800,
+                        
+                        // 【关键修改 2】PC 端的默认宽度
+                        width: 410, 
+                        
                         isNeedAudio: false,
                         isNeedQuote: true,
-                        feedback: {
-                            isNeedFeedback: false,
-                            feedbackPanel: {
-                                tags: [
-                                    {
-                                        label: '内容有误',
-                                        isNeedDetail: false,
-                                    },
-                                ],
-                            },
-                        },
+                        feedback: { isNeedFeedback: false },
                     },
                 },
             });
 
-            // 3. 初始化后立即显示聊天窗口
-            // 因为隐藏了悬浮球 (asstBtn: false)，这一步是必须的，否则用户看不到界面
+            // 【关键修改 3】初始化后立即显示聊天窗口
+            // 配合 CSS 媒体查询，在手机上这会直接变成全屏覆盖
             cozeWebSDK.showChatBot();
+
+            // (可选) 额外的 JS 强制适配监听，双重保险
+            // 防止 CSS 没有生效的情况
+            function adjustLayout() {
+                const isMobile = window.innerWidth <= 480;
+                if (isMobile) {
+                    // 如果 SDK 提供了 updateConfig 方法，可以在这里动态切换
+                    // cozeWebSDK.updateConfig(...) 
+                    // 但通常 layout: 'auto' 配合 CSS 已经足够
+                }
+            }
+            window.addEventListener('resize', adjustLayout);
         });
     </script>
 </body>
