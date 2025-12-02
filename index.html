@@ -1,98 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="en">
+  <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coze AI Bot</title>
-    
-    <style>
-        /* 全局样式：设置字体和渐变背景 */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            
-            /* 美化：添加舒适的渐变背景 */
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            /* 或者使用更鲜艳的：background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); */
-            
-            /* Flex布局使卡片居中 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* 聊天容器样式 */
-        #app {
-            background-color: #ffffff;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 桌面端/大屏设备样式：卡片式布局 */
-        @media (min-width: 768px) {
-            #app {
-                width: 1200px;        /* 宽度适中，适合展示PC端的三栏布局 */
-                height: 90vh;         /* 高度占视口的90% */
-                max-width: 95vw;      /* 防止溢出 */
-                border-radius: 24px;  /* 大圆角 */
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); /* 柔和的深投影，营造悬浮感 */
-                overflow: hidden;     /* 保证圆角内的内容不溢出 */
-                transition: all 0.3s ease;
-            }
-        }
-
-        /* 移动端样式：全屏沉浸 */
-        @media (max-width: 767px) {
-            #app {
-                width: 100%;
-                height: 100%;
-                border-radius: 0;
-                box-shadow: none;
-            }
-        }
-
-        /* 覆盖 Web SDK iframe 的默认行为，确保它填满容器 */
-        .coze-app-sdk {
-            width: 100% !important;
-            height: 100% !important;
-            border: none !important;
-            background: transparent;
-        }
-    </style>
-</head>
-<body>
-    
-    <!-- 机器人的挂载容器 -->
-    <div id="app"></div>
-
-    <script type="text/javascript">
-        // 动态创建 script 标签加载 SDK
-        var webSdkScript = document.createElement('script');
-        webSdkScript.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/builder-web-sdk/0.1.1-beta.1/dist/umd/index.js';
-        document.head.appendChild(webSdkScript);
-
-        // 脚本加载完成后初始化 Bot
-        webSdkScript.onload = function () {
-            // 确保 CozeWebSDK 已加载
-            if (window.CozeWebSDK) {
-                new CozeWebSDK.AppWebSDK({
-                    "token": "sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J",
-                    "appId": "7578837631745097754",
-                    "container": "#app",
-                    "layout": "pc",      // 显式声明布局模式
-                    "userInfo": {
-                        "id": "user",
-                        "url": "https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png",
-                        "nickname": "User"
-                    }
-                });
-            } else {
-                console.error("CozeWebSDK 加载失败");
-            }
-        }
-    </script>
-</body>
+    <link rel="stylesheet" href="./main.css" />
+  </head>
+  <body>  
+    <!-- Install SDK -->
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
+    <script src="./index.js"></script>
+  </body>
 </html>
