@@ -2,66 +2,84 @@
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
-    <!-- 关键：设置 viewport 以适配移动端屏幕比例 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智汇办 - 智能助手</title>
+    <title>智汇办 - 居中对话框</title>
     
     <style>
-        /* 1. 基础样式 */
+        /* 全局样式 */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* 防止背景滚动 */
-            background-color: #f5f7fa;
+            overflow: hidden;
+            /*以此背景色模拟网页背景，突出居中的聊天框 */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: sans-serif;
         }
 
         /* =========================================
-           2. 动态调整聊天框尺寸（响应式 CSS）
-           参考帮助文档建议实现
+           核心容器样式：实现居中与响应式
            ========================================= */
-
-        /* 平板/窄屏 PC (宽度小于 768px) */
-        @media (max-width: 768px) {
-            /* 尝试定位 Coze 的容器类名，通常是 class 包含 coze-webchat */
-            div[class*="coze-webchat"], 
-            .coze-webchat-container {
-                width: 90% !important;   /* 宽度变窄适配 */
-                right: 5% !important;    /* 居中一点 */
-                bottom: 20px !important;
-            }
+        #chat-container {
+            /* 1. 固定定位，确保不随页面滚动 */
+            position: fixed;
+            z-index: 1000;
+            background: #fff; /* 容器背景色 */
+            overflow: hidden; /* 防止内容溢出圆角 */
+            
+            /* 2. PC 端居中核心代码 (绝对定位 + 变换) */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            
+            /* 3. PC 端默认尺寸与美化 */
+            width: 500px;
+            height: 650px;
+            border-radius: 16px; /* 圆角卡片感 */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); /* 悬浮阴影 */
+            transition: all 0.3s ease; /* 尺寸变化时的过渡动画 */
         }
 
-        /* 手机移动端 (宽度小于 480px) */
-        @media (max-width: 480px) {
-            div[class*="coze-webchat"], 
-            .coze-webchat-container {
-                width: 100vw !important;  /* 强制占满全屏宽度 */
-                height: 100vh !important; /* 强制占满全屏高度 */
+        /* =========================================
+           移动端适配：强制全屏
+           ========================================= */
+        @media (max-width: 768px) {
+            #chat-container {
+                /* 覆盖 PC 端的定位样式 */
                 top: 0 !important;
                 left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                border-radius: 0 !important; /* 取消圆角，变成原生App体验 */
+                transform: none !important; /* 取消居中位移 */
+                
+                /* 强制铺满屏幕 */
+                width: 100% !important;
+                height: 100% !important;
+                
+                /* 移除卡片样式，变成原生 App 风格 */
+                border-radius: 0 !important;
                 box-shadow: none !important;
             }
         }
     </style>
 </head>
 <body>
-    
+
+    <!-- 1. 创建自定义挂载容器 -->
+    <div id="chat-container"></div>
+
     <!-- 加载 SDK -->
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 
     <script>
         window.addEventListener('load', function() {
             
-            // 初始化 Chat SDK
+            // 获取我们创建的容器元素
+            const containerElement = document.getElementById('chat-container');
+
             const cozeWebSDK = new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'app',
                     bot_id: '', 
-                    isIframe: false,
+                    isIframe: false, // 设为 false 以便更好地嵌入容器
                     appInfo: {
                         appId: '7578837631745097754',
                         workflowId: '7578919509240463398'    
@@ -69,7 +87,7 @@
                 },
                 auth: {
                     type: 'token',
-                    // ⚠️ 注意：生产环境建议 Token 不要写死在前端，最好由后端生成
+                    // 生产环境建议动态获取 Token
                     token: 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J',
                     onRefreshToken: async () => 'sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J'
                 },
@@ -80,58 +98,38 @@
                 },
                 ui: {
                     base: {
-                        icon: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/chatsdk-logo.png',
-                        
-                        // 【关键修改 1】让 SDK 自动识别设备类型
-                        // 电脑上显示悬浮窗，手机上显示全屏模式
-                        layout: 'auto', 
-                        
-                        lang: 'zh-CN',
+                        // 【关键配置】
+                        // 因为我们要挂载到自定义容器中，建议强制指定布局，
+                        // 防止 SDK 内部的自动切换逻辑与外部 CSS 冲突。
+                        layout: 'pc', 
                         zIndex: 1000
                     },
                     header: {
                         isShow: true,
-                        isNeedClose: false, // 禁止关闭，保证一直显示
+                        isNeedClose: false, // 容器模式下通常不需要关闭按钮
                     },
                     asstBtn: {
-                        isNeed: false // 隐藏右下角悬浮球，因为我们要直接弹出来
+                        isNeed: false // 【关键】隐藏默认的右下角悬浮球
                     },
                     footer: {
                         isShow: true,
-                        expressionText: 'Powered by Doubao',
-                    },
-                    conversations: {
-                        isNeed: true,
+                        expressionText: 'Powered by 智汇办',
                     },
                     chatBot: {
                         title: '智汇办',
+                        // 【核心配置】指定挂载容器
+                        // 所有的聊天界面都会被渲染进这个 div 里
+                        el: containerElement, 
+                        
+                        // 注意：设置了 el 后，这里的 width 属性通常会失效，
+                        // 尺寸完全由 #chat-container 的 CSS 控制
                         uploadable: true,
-                        
-                        // 【关键修改 2】PC 端的默认宽度
-                        width: 410, 
-                        
-                        isNeedAudio: false,
-                        isNeedQuote: true,
-                        feedback: { isNeedFeedback: false },
                     },
                 },
             });
 
-            // 【关键修改 3】初始化后立即显示聊天窗口
-            // 配合 CSS 媒体查询，在手机上这会直接变成全屏覆盖
+            // 立即显示（虽然挂载模式下通常会自动显示，但调用一下更保险）
             cozeWebSDK.showChatBot();
-
-            // (可选) 额外的 JS 强制适配监听，双重保险
-            // 防止 CSS 没有生效的情况
-            function adjustLayout() {
-                const isMobile = window.innerWidth <= 480;
-                if (isMobile) {
-                    // 如果 SDK 提供了 updateConfig 方法，可以在这里动态切换
-                    // cozeWebSDK.updateConfig(...) 
-                    // 但通常 layout: 'auto' 配合 CSS 已经足够
-                }
-            }
-            window.addEventListener('resize', adjustLayout);
         });
     </script>
 </body>
