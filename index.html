@@ -1,499 +1,64 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智汇办校园助手</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coze AI Bot</title>
+    
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --primary-color: #667eea;
-            --bg-color: #f0f2f5;
-            --chat-bg: #ffffff;
-            --bot-bubble: #f1f3f4;
-            --user-bubble: #667eea;
-            --text-main: #333;
-            --text-sub: #666;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* 修复：确保 html body 占满全屏，防止移动端滚动穿透 */
+        /* 基础样式：设置页面整体布局 */
         html, body {
-            height: 100%; 
-            overflow: hidden; /* 禁止 body 滚动，只允许聊天区域滚动 */
+            height: 100%; /* 让页面高度占满整个浏览器窗口 */
+            margin: 0;    /* 清除浏览器默认的外边距 */
+            overflow: hidden; /* 防止出现双重滚动条 */
         }
 
-        body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-            background: var(--bg-color);
-            background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        /* 修复：容器高度限制，关键在于 Flex 布局 */
-        .container {
+        /* 容器占满全屏 */
+        #app {
+            height: 100%;
             width: 100%;
-            max-width: 900px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 85vh; /* 桌面端高度 */
-            position: relative;
+            background-color: #f5f5f5; /* 添加一个浅灰背景色，便于区分 */
         }
 
-        /* 头部 */
-        .header {
-            background: var(--chat-bg);
-            padding: 15px 25px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 10;
-            flex-shrink: 0; /* 防止头部被压缩 */
-        }
-
-        .header-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar-circle {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
-        }
-
-        .header-text h1 {
-            font-size: 1.1rem;
-            color: var(--text-main);
-            font-weight: 700;
-        }
-
-        .header-text p {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-top: 2px;
-        }
-
-        /* 聊天区域主容器 */
-        .chat-container {
-            flex: 1; /* 占据剩余空间 */
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            position: relative;
-            overflow: hidden; /* 防止溢出 */
-            min-height: 0; /* 关键：Flex 嵌套滚动必须设置 */
-        }
-
-        /* 消息滚动区域 */
-        .messages {
-            flex: 1; /* 占据剩余空间 */
-            padding: 20px;
-            overflow-y: auto; /* 允许垂直滚动 */
-            scroll-behavior: auto; /* JS控制滚动，设为auto更流畅 */
-            background: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* 美化滚动条 */
-        .messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        .messages::-webkit-scrollbar-thumb {
-            background: #ddd;
-            border-radius: 3px;
-        }
-
-        /* 消息气泡 */
-        .message-wrapper {
-            display: flex;
-            flex-direction: column;
-            max-width: 85%;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message {
-            padding: 12px 16px;
-            font-size: 15px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            position: relative;
-        }
-
-        /* 机器人样式 */
-        .bot-wrapper {
-            align-self: flex-start;
-        }
-        .bot-wrapper .bot-icon {
-            font-size: 12px;
-            margin-bottom: 4px;
-            color: #888;
-            margin-left: 2px;
-        }
-        .bot-wrapper .message {
-            background: var(--bot-bubble);
-            color: var(--text-main);
-            border-radius: 4px 18px 18px 18px;
-        }
-
-        /* 用户样式 */
-        .user-wrapper {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
-        .user-wrapper .message {
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 18px 4px 18px 18px;
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.2);
-        }
-
-        /* 底部输入区 */
-        .input-area {
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid rgba(0,0,0,0.05);
-            flex-shrink: 0; /* 防止输入框被压缩 */
-        }
-
-        .input-container {
-            display: flex;
-            align-items: center;
-            background: #f0f2f5;
-            padding: 8px 8px 8px 20px;
-            border-radius: 30px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-
-        .input-container:focus-within {
-            background: white;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-
-        .input-container input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 16px;
-            outline: none;
-            color: #333;
-            min-width: 0; /* 修复 flex input 宽度问题 */
-        }
-
-        .input-container button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-            margin-left: 8px;
-            flex-shrink: 0;
-        }
-
-        .input-container button:hover {
-            transform: scale(1.05);
-        }
-
-        .input-container button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* 正在输入动画 */
-        .typing-indicator {
-            padding: 15px;
-            background: var(--bot-bubble);
-            border-radius: 4px 18px 18px 18px;
-            width: fit-content;
-            display: none;
-            align-items: center;
-            gap: 5px;
-            margin-left: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: #bbb;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        /* 移动端全屏适配 */
-        @media (max-width: 768px) {
-            body { padding: 0; }
-            .container {
-                height: 100%; /* 占满视口 */
-                max-width: 100%;
-                border-radius: 0;
-            }
-            .header { padding: 12px 15px; }
-            .messages { padding: 15px; }
+        /* 自定义Web SDK iframe的样式（类名与JS中ui.className保持一致，如果配置了的话） */
+        .coze-app-sdk {
+            box-sizing: border-box; /* 盒模型规则：宽高包含边框和内边距 */
+            padding: 4px;           /* iframe内部内容添加内边距 */
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-info">
-                <div class="avatar-circle">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div class="header-text">
-                    <h1>智汇办校园助手</h1>
-                    <p><i class="fa-solid fa-circle" style="font-size:8px; color:#2ecc71; margin-right:4px;"></i>在线</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-container">
-            <div class="messages" id="messages">
-                <div class="message-wrapper bot-wrapper">
-                    <div class="bot-icon">助手</div>
-                    <div class="message">
-                        您好！我是智汇办校园助手 👋<br><br>
-                        请直接告诉我您的问题，例如：<br>
-                        "转专业需要什么条件？"
-                    </div>
-                </div>
-            </div>
+    
+    <!-- 机器人的挂载容器 -->
+    <div id="app"></div>
 
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-        </div>
+    <script type="text/javascript">
+        // 动态创建 script 标签加载 SDK
+        var webSdkScript = document.createElement('script');
+        webSdkScript.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/builder-web-sdk/0.1.1-beta.1/dist/umd/index.js';
+        document.head.appendChild(webSdkScript);
 
-        <div class="input-area">
-            <div class="input-container">
-                <input type="text" id="messageInput" placeholder="请输入您的问题..." autocomplete="off">
-                <button id="sendButton">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-<script>
-        class ChatApp {
-            constructor() {
-                this.messagesContainer = document.getElementById('messages');
-                this.messageInput = document.getElementById('messageInput');
-                this.sendButton = document.getElementById('sendButton');
-                this.typingIndicator = document.getElementById('typingIndicator');
-                
-                // 请确保这里是 http 还是 https 取决于你的服务器配置
-                // 如果刚才报 SSL 错误，请尝试改为 http
-                this.apiUrl = 'https://bailian.hjke.cn/api.php';
-                this.isTyping = false; 
-                
-                this.initEventListeners();
-            }
-            
-            initEventListeners() {
-                this.sendButton.addEventListener('click', () => this.sendMessage());
-                this.messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !this.isTyping) {
-                        this.sendMessage();
+        // 脚本加载完成后初始化 Bot
+        webSdkScript.onload = function () {
+            // 确保 CozeWebSDK 已加载
+            if (window.CozeWebSDK) {
+                new CozeWebSDK.AppWebSDK({
+                    "token": "sat_2pVMi67LibNtzgKM2JGhjSAxRfJQycPBHWKYeUm7HwRkJPrRt1O3dp33lsKVYM7J",
+                    "appId": "7578837631745097754",
+                    "container": "#app", // 挂载到 id 为 app 的 div 上
+                    "layout": "pc",      // 显式声明布局模式 (pc/mobile/auto)
+                    "userInfo": {
+                        "id": "user",
+                        "url": "https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png",
+                        "nickname": "User"
                     }
                 });
-            }
-            
-            async sendMessage() {
-                const message = this.messageInput.value.trim();
-                if (!message || this.isTyping) return;
-                
-                this.isTyping = true;
-                this.addMessage(message, 'user');
-                this.messageInput.value = '';
-                this.messageInput.blur(); // 手机端关闭键盘
-                
-                const botMessageDiv = this.createBotMessageBubble();
-                this.setLoading(true);
-                
-                try {
-                    const response = await fetch(this.apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: message })
-                    });
-                    
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                    this.typingIndicator.style.display = 'none';
-
-                    // --- 兼容性修复开始 ---
-                    // 不再使用 pipeThrough 和 for await，改用最原始的 reader
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
-                    
-                    let buffer = ''; 
-                    let botText = ''; 
-
-                    while (true) {
-                        // 手动读取流
-                        const { done, value } = await reader.read();
-                        
-                        if (done) break;
-
-                        // 解码（stream: true 处理多字节字符分割问题）
-                        const chunk = decoder.decode(value, { stream: true });
-                        buffer += chunk;
-                        
-                        const lines = buffer.split('\n');
-                        buffer = lines.pop(); // 保留最后一行
-                        
-                        this.parseAndAppend(lines, botMessageDiv, (newText) => {
-                            botText += newText;
-                            return botText;
-                        });
-                    }
-                    // --- 兼容性修复结束 ---
-                    
-                    // 处理剩余缓冲区
-                    if (buffer.trim()) {
-                        this.parseAndAppend([buffer], botMessageDiv, (newText) => {
-                            botText += newText;
-                            return botText;
-                        });
-                    }
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    // 手机端调试用：显示具体错误
-                    botMessageDiv.innerHTML += `<br><span style="color:red">连接异常: ${error.message}</span>`;
-                } finally {
-                    this.isTyping = false;
-                    this.setLoading(false);
-                    // 只有桌面端才自动聚焦，避免手机键盘反复弹出
-                    if(window.innerWidth > 768) this.messageInput.focus();
-                }
-            }
-
-            // 解析逻辑保持不变
-            parseAndAppend(lines, botMessageDiv, updateTextCallback) {
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
-                    
-                    if (trimmedLine.startsWith('data:')) {
-                        const jsonStr = trimmedLine.substring(5).trim();
-                        
-                        if (!jsonStr || jsonStr === '[DONE]') continue;
-                        
-                        try {
-                            const data = JSON.parse(jsonStr);
-                            
-                            if (data.error) {
-                                botMessageDiv.innerHTML += `<br><span style="color:red">错误: ${data.error}</span>`;
-                                continue;
-                            }
-
-                            if (data.output && data.output.text) {
-                                const fullText = updateTextCallback(data.output.text);
-                                botMessageDiv.innerHTML = fullText.replace(/\n/g, '<br>');
-                                this.scrollToBottom();
-                            }
-                        } catch (e) {
-                            // 忽略非 JSON 数据
-                        }
-                    }
-                }
-            }
-
-            createBotMessageBubble() {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'message-wrapper bot-wrapper';
-                wrapper.innerHTML = `
-                    <div class="bot-icon">助手</div>
-                    <div class="message"></div>
-                `;
-                this.messagesContainer.appendChild(wrapper);
-                this.scrollToBottom();
-                return wrapper.querySelector('.message');
-            }
-
-            addMessage(text, sender) {
-                const wrapper = document.createElement('div');
-                wrapper.className = `message-wrapper ${sender}-wrapper`;
-                let htmlContent = '';
-                if (sender === 'bot') htmlContent += `<div class="bot-icon">助手</div>`;
-                htmlContent += `<div class="message">${text.replace(/\n/g, '<br>')}</div>`;
-                wrapper.innerHTML = htmlContent;
-                this.messagesContainer.appendChild(wrapper);
-                this.scrollToBottom();
-            }
-            
-            setLoading(loading) {
-                this.sendButton.disabled = loading;
-                if (loading) {
-                    this.typingIndicator.style.display = 'flex';
-                } else {
-                    this.typingIndicator.style.display = 'none';
-                }
-                this.scrollToBottom();
-            }
-            
-            scrollToBottom() {
-                requestAnimationFrame(() => {
-                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-                });
+            } else {
+                console.error("CozeWebSDK 加载失败");
             }
         }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            new ChatApp();
-        });
     </script>
 </body>
 </html>
