@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* =========================================
-           1. 你的原始视觉风格 (保持不变)
-           ========================================= */
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --text-main: #333;
@@ -34,9 +31,12 @@
             padding: 20px;
         }
 
+        /* 
+           PC端容器：宽度保持 750px (最佳单栏阅读体验)
+        */
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 750px; 
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 24px;
@@ -44,7 +44,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 85vh;
+            height: 85vh; 
             position: relative;
         }
 
@@ -57,7 +57,7 @@
             justify-content: space-between;
             z-index: 10;
             flex-shrink: 0;
-            height: 70px; /* 固定高度，防止被压缩 */
+            height: 70px;
         }
 
         .header-info { display: flex; align-items: center; gap: 15px; }
@@ -74,23 +74,16 @@
         .header-text h1 { font-size: 1.1rem; color: var(--text-main); font-weight: 700; }
         .header-text p { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
 
-        /* =========================================
-           2. 核心修复：Coze 挂载点与样式覆盖
-           ========================================= */
-        
+        /* Coze 挂载点 */
         #coze-mount-point {
-            flex: 1; /* 自动填满剩余高度 */
+            flex: 1;
             width: 100%;
             position: relative;
             background: transparent;
             overflow: hidden; 
         }
 
-        /* 
-           【关键 CSS 修复】
-           强制重置 Coze SDK 内部容器的样式，消除 PC 端的圆角、阴影和边距
-           让它看起来像原本就长在卡片里一样
-        */
+        /* 强制覆盖 Coze SDK 样式，去除边框和圆角 */
         #coze-mount-point > div, 
         #coze-mount-point iframe {
             width: 100% !important;
@@ -101,9 +94,7 @@
             background: transparent !important;
         }
 
-        /* =========================================
-           3. 移动端适配
-           ========================================= */
+        /* 移动端适配：全屏显示 */
         @media (max-width: 768px) {
             body { padding: 0; }
             .container {
@@ -131,7 +122,6 @@
             </div>
         </div>
         
-        <!-- Coze 挂载在这里 -->
         <div id="coze-mount-point"></div>
     </div>
 
@@ -139,8 +129,6 @@
 
     <script>
         window.addEventListener('load', function() {
-            // 智能检测设备类型
-            // 目的：手机上用 mobile 布局（输入框更好用），PC 上用 pc 布局（更美观）
             const isMobile = window.innerWidth < 768;
 
             const cozeWebSDK = new CozeWebSDK.WebChatClient({
@@ -165,29 +153,29 @@
                 },
                 ui: {
                     base: {
-                        // 【核心修改 1】根据设备动态切换布局模式
                         layout: isMobile ? 'mobile' : 'pc',
                         zIndex: 1
                     },
+                    
+                    // 【核心修改】Header 配置双重保险
                     header: {
-                        // 隐藏 SDK 自带 Header，使用你的
-                        isShow: false 
+                        // 1. 关闭 SDK 自带标题栏（因为我们用了自定义 HTML 标题栏）
+                        isShow: false, 
+                        
+                        // 2. 显式禁用关闭按钮（按照你的文档建议）
+                        // 即使 isShow 被意外触发，关闭按钮也不会显示
+                        isNeedClose: false 
                     },
+                    
                     asstBtn: { isNeed: false }, 
-                    footer: { isShow: false }, // 隐藏底部 Powered by
-                    
-                    // 【核心修改 2】PC端配置优化
+                    footer: { isShow: false },
                     conversations: {
-                        // ❌ 关键！在 PC 端隐藏左侧的“历史会话列表”
-                        // 这样聊天框就会填满整个卡片，不会出现侧边栏
-                        isNeed: false 
+                        isNeed: false // PC 端隐藏左侧会话栏
                     },
-                    
                     chatBot: {
                         el: document.getElementById('coze-mount-point'),
-                        width: '100%', // 强制宽度
+                        width: '100%',
                         uploadable: true,
-                        // 移除默认的阴影和圆角配置，交给外部 CSS 控制
                         backgroundColor: 'transparent', 
                     },
                 },
