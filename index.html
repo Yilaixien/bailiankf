@@ -4,12 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>智汇办校园助手</title>
-    <!-- 引入 FontAwesome 图标库 (用于你的 Header 图标) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         /* =========================================
-           1. 你的原始 CSS (保持不变)
+           1. 你的原始视觉风格 (保持不变)
            ========================================= */
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -35,7 +34,6 @@
             padding: 20px;
         }
 
-        /* 核心容器：PC端卡片样式 */
         .container {
             width: 100%;
             max-width: 900px;
@@ -46,11 +44,10 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 85vh; /* PC端高度 */
+            height: 85vh;
             position: relative;
         }
 
-        /* 头部样式 */
         .header {
             background: #ffffff;
             padding: 15px 25px;
@@ -60,6 +57,7 @@
             justify-content: space-between;
             z-index: 10;
             flex-shrink: 0;
+            height: 70px; /* 固定高度，防止被压缩 */
         }
 
         .header-info { display: flex; align-items: center; gap: 15px; }
@@ -77,35 +75,50 @@
         .header-text p { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
 
         /* =========================================
-           2. 新增 Coze 挂载点样式
+           2. 核心修复：Coze 挂载点与样式覆盖
            ========================================= */
         
-        /* 这个 div 将填满 Header 下方的所有空间 */
         #coze-mount-point {
-            flex: 1; /* 占据剩余高度 */
+            flex: 1; /* 自动填满剩余高度 */
             width: 100%;
-            overflow: hidden; /* 防止 Coze 的 iframe 撑开 */
+            position: relative;
             background: transparent;
+            overflow: hidden; 
+        }
+
+        /* 
+           【关键 CSS 修复】
+           强制重置 Coze SDK 内部容器的样式，消除 PC 端的圆角、阴影和边距
+           让它看起来像原本就长在卡片里一样
+        */
+        #coze-mount-point > div, 
+        #coze-mount-point iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: transparent !important;
         }
 
         /* =========================================
-           3. 移动端全屏适配 (保持你的逻辑)
+           3. 移动端适配
            ========================================= */
         @media (max-width: 768px) {
             body { padding: 0; }
             .container {
-                height: 100%; /* 占满视口 */
+                height: 100%;
                 max-width: 100%;
                 border-radius: 0;
             }
-            .header { padding: 12px 15px; }
+            .header { padding: 12px 15px; height: 60px; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- 保留你漂亮的 Header -->
+        <!-- 你的自定义 Header -->
         <div class="header">
             <div class="header-info">
                 <div class="avatar-circle">
@@ -118,23 +131,23 @@
             </div>
         </div>
         
-        <!-- 
-            这里删除了原本的静态 HTML 聊天气泡和输入框 
-            改为放置一个 Coze SDK 的挂载容器 
-        -->
+        <!-- Coze 挂载在这里 -->
         <div id="coze-mount-point"></div>
     </div>
 
-    <!-- 加载 SDK -->
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 
     <script>
         window.addEventListener('load', function() {
+            // 智能检测设备类型
+            // 目的：手机上用 mobile 布局（输入框更好用），PC 上用 pc 布局（更美观）
+            const isMobile = window.innerWidth < 768;
+
             const cozeWebSDK = new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'app',
                     bot_id: '', 
-                    isIframe: false, // 必须为 false 才能嵌入 div
+                    isIframe: false, 
                     appInfo: {
                         appId: '7578837631745097754',
                         workflowId: '7578919509240463398'    
@@ -152,31 +165,34 @@
                 },
                 ui: {
                     base: {
-                        // 【关键】强制使用 mobile 布局
-                        // 因为我们已经有了外层的 Container 限制大小，
-                        // 用 mobile 布局可以让 Coze 的内容填满容器，不留多余边距
-                        layout: 'mobile', 
+                        // 【核心修改 1】根据设备动态切换布局模式
+                        layout: isMobile ? 'mobile' : 'pc',
                         zIndex: 1
                     },
-                    // 【关键】隐藏 Coze 自带的 Header
-                    // 因为我们用了你 HTML 里更好看的自定义 Header
                     header: {
+                        // 隐藏 SDK 自带 Header，使用你的
                         isShow: false 
                     },
-                    asstBtn: { isNeed: false }, // 隐藏悬浮球
-                    footer: {
-                        isShow: false // 隐藏底部 Powered by，节省空间
+                    asstBtn: { isNeed: false }, 
+                    footer: { isShow: false }, // 隐藏底部 Powered by
+                    
+                    // 【核心修改 2】PC端配置优化
+                    conversations: {
+                        // ❌ 关键！在 PC 端隐藏左侧的“历史会话列表”
+                        // 这样聊天框就会填满整个卡片，不会出现侧边栏
+                        isNeed: false 
                     },
+                    
                     chatBot: {
-                        // 【核心】挂载到我们预留的 div 上
                         el: document.getElementById('coze-mount-point'),
-                        width: '100%', // 宽度跟随父容器
+                        width: '100%', // 强制宽度
                         uploadable: true,
+                        // 移除默认的阴影和圆角配置，交给外部 CSS 控制
+                        backgroundColor: 'transparent', 
                     },
                 },
             });
 
-            // 立即显示
             cozeWebSDK.showChatBot();
         });
     </script>
